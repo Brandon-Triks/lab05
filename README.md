@@ -1,125 +1,86 @@
-\![Build Status](https://github.com/Brandon-Triks/lab04/actions/workflows/ci.yml/badge.svg)
-
-# Лабораторная работа №03
-## Шаг1 - подготовка репозитория
-  Зададим переменную окружения своим логином на github и скопируем репозиторий lab02 в папку lab03, используя следующие команды:  
-`export GITHUB_USERNAME=Brandon-Triks`  
-`git clone https://github.com/${GITHUB_USERNAME}/lab02.git projects/lab03`  
-  Результат вывода:  
-`Клонирование в «projects/lab03»...
-remote: Enumerating objects: 15, done.
-remote: Counting objects: 100% (15/15), done.
-remote: Compressing objects: 100% (10/10), done.
-remote: Total 15 (delta 1), reused 9 (delta 0), pack-reused 0 (from 0)
-Получение объектов: 100% (15/15), готово.
-Определение изменений: 100% (1/1), готово.`  
-    Удалим текущую связь с удалённым репозиторием, а также добавим новый адрес для имени origin с помощью команд: 
-`git remote remove origin  
-git remote add origin https://github.com/${GITHUB_USERNAME}/lab03.git`  
-## Шаг2 - ручная сборка
-* Прежде чем использовать CMake, попробуем собрать проект вручную командами компилятора g++.  
-Соберём объектный файл и статическую библиотеку:  
-`g++ -std=c++11 -I./include -c sources/print.cpp`  
-`ar rvs print.a print.o`  
+# Лабораторная работа 4  
+Вместо Travis будем использовать GitHub Actions.  
+## Шаг1 - Подготовка репозитория  
+1. Создадим публичный репозиторий lab04.
+2. В терминале выполним клонирование предыдущей лабы и перенасроим удаленный репозиторий (аналогично прошлой лабе)   
+  `export GITHUB_USERNAME=Brandon-Triks`  
+  `cd ${GITHUB_USERNAME}/workspace`  
+  `git clone https://github.com/${GITHUB_USERNAME}/lab03 projects/lab04`  -  клонируем lab03 в папку lab04  
+  `cd projects/lab04`  
+  `git remote remove origin`                                              - меняем привязку к удаленному репозиторию  
+  `git remote add origin https://github.com/${GITHUB_USERNAME}/lab04`  
+## Шаг2 - Создание конфигурации GitHub Actions  
+1. Создадим папку для workflow  
+  `mkdir -p .github/workflows`  
+2. Создадим файл конфигурации ci.yml с помощью cat. Этот файл описывает, что делать серверу при пуше.  
+   `cat > .github/workflows/ci.yml <<EOF`  
+`name: CMake Build CI`  
+` `  
+`# Описываем события, на которые реагирует Action`  
+`on:`  
+`  push:`  
+`    branches: [ master, main ]`  
+`  pull_request:`  
+`    branches: [ master, main ]`  
+` `  
+`jobs:`  
+`  build:`  
+`    # Запускаем на последней версии Ubuntu`  
+`    runs-on: ubuntu-latest`  
+` `  
+`    steps:`  
+`    # 1. Скачиваем код репозитория`  
+`    - uses: actions/checkout@v3`  
+` `  
+`    # 2. Устанавливаем зависимости`  
+`    - name: Install dependencies`  
+`      run: |`  
+`        sudo apt-get update`  
+`        sudo apt-get install -y cmake build-essential`  
+` `  
+`    # 3. Конфигурируем проект (аналог cmake -H. -B_build ...)`  
+`    - name: Configure CMake`  
+`      run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install`  
+` `  
+`    # 4. Собираем проект`  
+`    - name: Build`  
+`      run: cmake --build _build`  
+` `  
+`    # 5. Тестируем установку`  
+`    - name: Install target`  
+`      run: cmake --build _build --target install`  
+`EOF`  
+## Шаг3 - Добавление значка статуса (Badge)  
+Добавим badge в начало readme  
+`export BADGE="\![Build Status](https://github.com/${GITHUB_USERNAME}/lab04/actions/workflows/ci.yml/badge.svg)"
+ex -sc "1i|$BADGE" -cx README.md`  
 Вывод:  
-`ar: создаётся print.a`
-`a - print.o`  
-* Соберём и запустим примеры:
-    Example 1:  
-    `g++ -std=c++11 -I./include -c examples/example1.cpp`  
-    `g++ example1.o print.a -o example1`  
-    `./example1 && echo` 
+`ex -sc "1i|$BADGE" -cx README.md`  
+## Шаг4 - Фиксация изменений и Push  
+Отправляем изменения на GitHub.  
+`git add .github/workflows/ci.yml`  
+`git add README.md`  
+`git commit -m "added GitHub Actions CI"`  
+Вывод:  
+`[main eb9eaf5] added GitHub Actions CI`  
+`2 files changed, 37 insertions(+)`  
+`create mode 100644 .github/workflows/ci.yml`  
 
-  Вывод - `hello`  
-    * Example 2:  
-      `g++ -std=c++11 -I./include -c examples/example2.cpp`  
-      `g++ example2.o print.a -o example2` 
-      `./example2` 
-      `cat log.txt && echo`
-  
-  Вывод - `hello` 
+`git push origin main`  
+Вывод:  
+`Перечисление объектов: 109, готово.`  
+`Подсчет объектов: 100% (109/109), готово.`  
+`При сжатии изменений используется до 2 потоков`  
+`Сжатие объектов: 100% (72/72), готово.`  
+`Запись объектов: 100% (109/109), 59.64 КиБ | 59.64 МиБ/с, готово.`  
+`Total 109 (delta 27), reused 101 (delta 25), pack-reused 0 (from 0)`  
+`remote: Resolving deltas: 100% (27/27), done.`  
+`To https://github.com/Brandon-Triks/lab04`  
+` * [new branch]      main -> main`
 
-* Удалим мусор, оставшийся после ручной сборки:  
- `rm -rf example1.o example2.o print.o print.a example1 example2 log.txt`  
- 
- ## Шаг3 - написание CMakeLists.txt  
- Напишем CMakeLists.txt.  
- * Инициализация проекта  
-    `cat > CMakeLists.txt <<EOF`  
-    `cmake_minimum_required(VERSION 3.4)`  
-    `project(print)`  
-    `EOF`
-  * Настройка стандарта C++   
-    `cat >> CMakeLists.txt <<EOF`  
-    `set(CMAKE_CXX_STANDARD 11)`  
-    `set(CMAKE_CXX_STANDARD_REQUIRED ON)`
-    `EOF`  
-  * Создание библиотеки и путей поиска заголовков  
-    `cat >> CMakeLists.txt <<EOF`  
-    `add_library(print STATIC \${CMAKE_CURRENT_SOURCE_DIR}/sources/print.cpp)`  
-    `include_directories(\${CMAKE_CURRENT_SOURCE_DIR}/include)`
-    `EOF`  
-   * Первая попытка сборки  
-    `cmake -H. -B_build`  
-    `cmake --build _build`  
-    Вывод:  
-    `[ 50%] Building CXX object CMakeFiles/print.dir/sources/print.cpp.o`  
-    `[100%] Linking CXX static library libprint.a`  
-    `[100%] Built target print`  
-    
-  ## Шаг4 - Сборка исполняемых файлов через CMake  
-  Добавим в конфиг сборку наших примеров (example1 и example2).  
-  * Добавление исполняемых файлов в конфиг  
-    `cat >> CMakeLists.txt <<EOF`  
-    `add_executable(example1 \${CMAKE_CURRENT_SOURCE_DIR}/examples/example1.cpp)`  
-    `add_executable(example2 \${CMAKE_CURRENT_SOURCE_DIR}/examples/example2.cpp)`  
-    `EOF`  
-  * Линковка (связывание) их с нашей библиотекой print  
-    `cat >> CMakeLists.txt <<EOF`  
-    `target_link_libraries(example1 print)`  
-    `target_link_libraries(example2 print)`  
-    `EOF`  
-   * Финальная сборка и проверка
-    `cmake --build _build`  
-    `./_build/example1 && echo`  
-    `./_build/example2`  
-    `cat log.txt && echo`  
-    `rm -rf log.txt`   
-      
-     В обоих случаях вывело сообщение hello.
+Удалив папки с артефактами сборки(_build и _install_) из репозитория, которые остались от предыдущей лабораторной работы и закоммитив изменения в репозиторий, заметим, что c Action все в порядке (возникал конфликт кэша CMake). См. рисунок:  
 
-  ## Шаг5 - написание CMakeLists.txt  
-  * Скачаем эталонный файл
-    `git clone https://github.com/tp-labs/lab03 tmp`  
-    `mv -f tmp/CMakeLists.txt .`  
-    `rm -rf tmp`  
-    
-    Вывод:  
-    `Клонирование в «tmp»...`  
-    `remote: Enumerating objects: 91, done.`  
-    `remote: Counting objects: 100% (30/30), done.`  
-    `remote: Compressing objects: 100% (9/9), done.`  
-    `remote: Total 91 (delta 23), reused 21 (delta 21), pack-reused 61 (from 1)`  
-    `Получение объектов: 100% (91/91), 1.02 МиБ | 2.59 МиБ/с, готово.`  
-    `Определение изменений: 100% (41/41), готово.`  
-     
-     * Сборка с установкой (install)
-    `cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install`  
-    `cmake --build _build --target install`  
-    `tree _install`  
-    Результат представлен на рисунке ниже:  
-    
-    ![Рисунок 1](https://raw.githubusercontent.com/Brandon-Triks/imagesl/main/пик.jpg )  
-      
-  ## Шаг6 - завершение  
-  Отправим изменения в новый репозиторий  
-   * `git add CMakeLists.txt`  
-   * `git commit -m "added CMakeLists.txt"`  
-   * `git push origin master`
-
- 
-      
-    
+![Рисунок 1](https://raw.githubusercontent.com/Brandon-Triks/imagesl/main/action.png ) 
     
   
 
