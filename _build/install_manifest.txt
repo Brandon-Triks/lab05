@@ -1,4 +1,0 @@
-/home/igor/Brandon-Triks/workspace/projects/lab03/_install/lib/libprint.a
-/home/igor/Brandon-Triks/workspace/projects/lab03/_install/include/print.hpp
-/home/igor/Brandon-Triks/workspace/projects/lab03/_install/cmake/print-config.cmake
-/home/igor/Brandon-Triks/workspace/projects/lab03/_install/cmake/print-config-noconfig.cmake
