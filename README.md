@@ -1,3 +1,5 @@
+\![Build Status](https://github.com/Brandon-Triks/lab04/actions/workflows/ci.yml/badge.svg)
+
 # Лабораторная работа №03
 ## Шаг1 - подготовка репозитория
   Зададим переменную окружения своим логином на github и скопируем репозиторий lab02 в папку lab03, используя следующие команды:  
