@@ -1,35 +1,39 @@
-name: CMake Build CI
+name: CI
 
-# Описываем события, на которые реагирует Action
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ main, master ]
 
 jobs:
   build:
-    # Запускаем на последней версии Ubuntu
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Скачиваем код репозитория
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
-    # 2. Устанавливаем зависимости (CMake и компилятор обычно уже есть, но обновим)
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential
+        sudo apt-get install -y cmake g++
 
-    # 3. Конфигурируем проект (аналог cmake -H. -B_build ...)
     - name: Configure CMake
-      run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
+      run: cmake -H. -B_build -DBUILD_TESTS=ON
 
-    # 4. Собираем проект
     - name: Build
       run: cmake --build _build
 
-    # 5. Тестируем установку
-    - name: Install target
+    - name: Test
+      run: cmake --build _build --target test -- ARGS=--verbose
+
+    - name: Install
       run: cmake --build _build --target install
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: install
+        path: _install/
