@@ -21,7 +21,7 @@ jobs:
         sudo apt-get install -y cmake g++
 
     - name: Configure CMake
-      run: cmake -H. -B_build -DBUILD_TESTS=ON
+      run: cmake -H. -B_build -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=install
 
     - name: Build
       run: cmake --build _build
@@ -36,4 +36,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: install
-        path: _install/
+        path: install/
